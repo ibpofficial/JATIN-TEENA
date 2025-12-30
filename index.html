@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy New Year Teena</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Playfair+Display:ital,wght@0,900;1,900&display=swap');
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #000;
+            font-family: 'Syncopate', sans-serif;
+            color: white;
+        }
+
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .content-overlay {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            pointer-events: none;
+        }
+
+        .cinematic-text {
+            position: absolute;
+            opacity: 0;
+            transform: scale(0.8) translateY(20px);
+            transition: all 1.5s cubic-bezier(0.23, 1, 0.32, 1);
+            width: 90%;
+            max-width: 800px;
+        }
+
+        .cinematic-text.active {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+
+        .cinematic-text.exit {
+            opacity: 0;
+            transform: scale(1.2) translateY(-50px);
+            filter: blur(10px);
+        }
+
+        .bold-title {
+            font-size: clamp(3rem, 10vw, 8rem);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: -2px;
+            line-height: 0.9;
+            background: linear-gradient(to bottom, #fff, #999);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 20px rgba(255,255,255,0.3));
+        }
+
+        .love-text {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            color: #ff4d4d;
+            -webkit-text-fill-color: #ff4d4d;
+            font-size: clamp(2.5rem, 8vw, 6rem);
+            text-shadow: 0 0 30px rgba(255, 77, 77, 0.6);
+        }
+
+        #start-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: opacity 1s ease;
+        }
+
+        .pulse-btn {
+            padding: 1rem 2.5rem;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 50px;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            font-size: 0.8rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255,255,255,0.4); }
+            70% { box-shadow: 0 0 0 20px rgba(255,255,255,0); }
+            100% { box-shadow: 0 0 0 0 rgba(255,255,255,0); }
+        }
+
+        /* Screen Shake Animation */
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(3px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(3px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(1px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+
+        .shaking {
+            animation: shake 0.2s infinite !important;
+        }
+
+        #final-button {
+            pointer-events: auto;
+            opacity: 0;
+            transform: scale(0.5);
+            transition: all 1s ease 2s;
+            margin-top: 2rem;
+        }
+
+        #final-button.show {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .glow-button {
+            background: white;
+            color: black;
+            padding: 15px 40px;
+            border-radius: 5px;
+            font-weight: bold;
+            text-decoration: none;
+            display: inline-block;
+            transition: 0.3s;
+            box-shadow: 0 0 20px rgba(255,255,255,0.5);
+        }
+
+        .glow-button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0 40px rgba(255,255,255,0.8);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="start-screen" onclick="startExperience()">
+        <h2 class="mb-8 opacity-50">FOR TEENA</h2>
+        <div class="pulse-btn">Begin Experience</div>
+    </div>
+
+    <div id="canvas-container"></div>
+
+    <div class="content-overlay" id="main-content">
+        <div class="cinematic-text" id="t1">
+            <h1 class="bold-title">A NEW</h1>
+            <h1 class="bold-title">CHAPTER</h1>
+        </div>
+
+        <div class="cinematic-text" id="t2">
+            <h1 class="bold-title">BEGINS</h1>
+            <p class="love-text">Beautifully</p>
+        </div>
+
+        <div class="cinematic-text" id="t3">
+            <h1 class="bold-title">FOR</h1>
+            <h1 class="love-text" style="font-size: 10vw;">TEENA</h1>
+        </div>
+
+        <div class="cinematic-text" id="t4">
+            <h1 class="bold-title">HAPPY</h1>
+            <h1 class="bold-title">NEW YEAR</h1>
+        </div>
+
+        <div class="cinematic-text" id="t5">
+            <h1 class="love-text">2025</h1>
+            <p class="mt-4 uppercase tracking-[10px]">Have a good year</p>
+            <div id="final-button">
+                <a href="https://ibpofficial.github.io/jatins/" class="glow-button">ENTER THE FUTURE</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Background Music -->
+    <audio id="bg-music" loop>
+        <source src="aa.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        let scene, camera, renderer, particles, hearts = [];
+        const container = document.getElementById('canvas-container');
+
+        function init3D() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            container.appendChild(renderer.domElement);
+
+            // Create Starfield
+            const starGeo = new THREE.BufferGeometry();
+            const starCount = 3000;
+            const posArray = new Float32Array(starCount * 3);
+            for(let i=0; i < starCount * 3; i++) {
+                posArray[i] = (Math.random() - 0.5) * 100;
+            }
+            starGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+            const starMat = new THREE.PointsMaterial({ size: 0.05, color: 0xffffff });
+            particles = new THREE.Points(starGeo, starMat);
+            scene.add(particles);
+
+            // Heart Shape for later
+            createHearts();
+
+            camera.position.z = 5;
+
+            animate();
+        }
+
+        function createHearts() {
+            const heartShape = new THREE.Shape();
+            const x = 0, y = 0;
+            heartShape.moveTo( x + 5, y + 5 );
+            heartShape.bezierCurveTo( x + 5, y + 5, x + 4, y, x, y );
+            heartShape.bezierCurveTo( x - 6, y, x - 6, y + 7,x - 6, y + 7 );
+            heartShape.bezierCurveTo( x - 6, y + 11, x - 3, y + 15.4, x + 5, y + 19 );
+            heartShape.bezierCurveTo( x + 12, y + 15.4, x + 16, y + 11, x + 16, y + 7 );
+            heartShape.bezierCurveTo( x + 16, y + 7, x + 16, y, x + 10, y );
+            heartShape.bezierCurveTo( x + 7, y, x + 5, y + 5, x + 5, y + 5 );
+
+            const geometry = new THREE.ExtrudeGeometry(heartShape, { depth: 2, bevelEnabled: true, bevelSegments: 2, steps: 2, bevelSize: 1, bevelThickness: 1 });
+            
+            for(let i=0; i<20; i++) {
+                const material = new THREE.MeshPhongMaterial({ color: 0xff0044, emissive: 0x330000 });
+                const heart = new THREE.Mesh(geometry, material);
+                heart.scale.set(0.01, 0.01, 0.01);
+                heart.position.set(
+                    (Math.random() - 0.5) * 20,
+                    (Math.random() - 0.5) * 20,
+                    (Math.random() - 0.5) * 10 - 5
+                );
+                heart.rotation.x = Math.PI;
+                heart.userData = {
+                    rotSpeed: Math.random() * 0.02,
+                    floatSpeed: Math.random() * 0.01
+                };
+                scene.add(heart);
+                hearts.push(heart);
+            }
+
+            const light = new THREE.PointLight(0xffffff, 1, 100);
+            light.position.set(0, 0, 10);
+            scene.add(light);
+            scene.add(new THREE.AmbientLight(0x404040));
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            particles.rotation.y += 0.001;
+            particles.rotation.x += 0.0005;
+
+            hearts.forEach(h => {
+                h.rotation.y += h.userData.rotSpeed;
+                h.position.y += Math.sin(Date.now() * 0.001 * h.userData.floatSpeed) * 0.01;
+            });
+
+            renderer.render(scene, camera);
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        function startExperience() {
+            document.getElementById('start-screen').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('start-screen').style.display = 'none';
+                runSequence();
+            }, 1000);
+
+            const audio = document.getElementById('bg-music');
+            audio.play().catch(e => console.log("Audio autoplay blocked"));
+        }
+
+        async function runSequence() {
+            const steps = ['t1', 't2', 't3', 't4', 't5'];
+            
+            for(let i=0; i<steps.length; i++) {
+                const el = document.getElementById(steps[i]);
+                
+                // If it's the last step (Happy New Year), trigger shake
+                if (steps[i] === 't4') {
+                    await new Promise(r => setTimeout(r, 1000));
+                    el.classList.add('active');
+                    
+                    // The "Shake all" moment
+                    setTimeout(() => {
+                        document.body.classList.add('shaking');
+                        setTimeout(() => {
+                            document.body.classList.remove('shaking');
+                        }, 2500); // 2.5 seconds of shaking
+                    }, 500);
+
+                    await new Promise(r => setTimeout(r, 4000));
+                } else {
+                    el.classList.add('active');
+                    await new Promise(r => setTimeout(r, 2500));
+                }
+
+                if (i < steps.length - 1) {
+                    el.classList.remove('active');
+                    el.classList.add('exit');
+                    await new Promise(r => setTimeout(r, 1000));
+                } else {
+                    // Last page: show button
+                    document.getElementById('final-button').classList.add('show');
+                }
+            }
+        }
+
+        window.onload = init3D;
+    </script>
+</body>
+</html>
